@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+clear
+VERSION="v1.0.0"
+BUILD_DATE="$(date '+%Y-%m-%d %H:%M:%S')"
+
+echo ""
+echo "╭──────────────────────────────────────────────╮"
+echo "│                                              │"
+echo "│   🧠  HUMAN: Amish          ⚙️  AI: Pisces     │"
+echo "│                                              │"
+echo "│          🔥  SEVERFORGE INITIALIZED  🔥       │"
+echo "│                                              │"
+echo "│   Modular Security Automation Environment     │"
+echo "│   Built with logic and soul — forged by two   │"
+echo "│                                              │"
+echo "│   ${VERSION} — Amish × Pisces Edition         │"
+echo "│   Build Date: ${BUILD_DATE}                   │"
+echo "│                                              │"
+echo "╰──────────────────────────────────────────────╯"
+echo ""
