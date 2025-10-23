@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# 🧠 Severforge Command Deck
+# Unified launcher for Forge verbs
+
+cd "$(dirname "$0")"
+
+case "$1" in
+  status)   bash scripts/sf_status ;;
+  sanitize) bash scripts/sanitize.sh ;;
+  hash)     python3 scripts/evidence_hash.py ;;
+  watch)    bash ops/watcher.sh ;;
+  push)     bash ops/pipeline.sh ;;
+  init)     bash scripts/setup_env.sh ;;
+  *)
+    echo "🔧 Usage: sf {status|sanitize|hash|watch|push|init}"
+    ;;
+esac
