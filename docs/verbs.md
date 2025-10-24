@@ -1,23 +1,41 @@
-# ⚙️ Severforge Command Verbs
+[H[2J[3J
+🩸  SEVERFORGE VERBS REFERENCE
+────────────────────────────────────────────────────────────────
 
-Each **verb** maps to a specific automation action inside the Forge ecosystem.  
-Think of these as *spoken runes* — concise, auditable commands that drive the forge.
+Version: v1.0.2       Authors: Amish × Pisces
+Last Updated: 2025-10-24
 
-| Verb | Description | Script Path | Notes |
-|------|--------------|--------------|-------|
-| `sf_status` | Check system health, uptime, and integrity | `scripts/sf_status` | Displays version, forge mood, and directory verification |
-| `sf_sanitize` | Clean up temp, cache, or residue | `scripts/sanitize.sh` | Optional pre-push hygiene |
-| `sf_hash` | Generate cryptographic evidence manifest | `scripts/evidence_hash.py` | Produces `hash_manifest.json` |
-| `sf_watch` | Start the forge heartbeat and reactive watcher | `ops/watcher.sh` | Monitors `/evidence` and `/logs` |
-| `sf_push` | Commit + push to GitHub with signed metadata | `ops/pipeline.sh` | (Coming soon) Auto-includes hash and log signatures |
-| `sf_init` | Initialize directories and config baseline | `scripts/setup_env.sh` | Run once at environment creation |
+────────────────────────────────────────────────────────────────
 
----
+  🧰  Core Verbs
 
-### 🧠 Design Notes
+                │ Command                                       │ Typical Use              
+────────────  │ ───────────────────────────────────────────── │ ───────────────────────
+sf_banner       │ Display the Severforge banner.                │ sf banner                
+sf_status       │ Display integrity, uptime, hash verification. │ After updates            
+sf_sanitize     │ Strip temp files and cached logs.             │ Between bounties         
+sf_react        │ Trigger forge animation flare.                │ Visual test              
+sf_watch        │ Run forge watcher for events.                 │ Background mode          
+sf_logview      │ Pretty-print historical logs.                 │ Review sessions          
 
-- Verbs are short and human-readable.  
-- Each maps to one physical file under `/scripts` or `/ops`.  
-- Future AI-integrated verbs (e.g. `sf_analyze`, `sf_reflect`) will live under `/ai/`.  
+  ⚙️  Recon & Automation Verbs
 
-“Speak only the verb. The Forge knows the rest.” 🔥
+                │ Command                                       │ Typical Use              
+────────────  │ ───────────────────────────────────────────── │ ───────────────────────
+sf_recon        │ Launch Recon Suite (nmap, httpx, nuclei).     │ sf recon target.com      
+sf_scan         │ Quick vulnerability sweep.                    │ Small-scope checks       
+sf_clone        │ Duplicate environment into clean clone.       │ Multi-collab / training  
+
+  🧭  sf pipeline_full — Automated Teaching + Recon Flow
+────────────────────────────────────────────────────────────────
+
+Usage:     sf pipeline_full [--auto] [TARGET]
+Purpose:   Full chained recon run with auto-permission prompts.
+Sequence:  amass → httpx → nuclei → pipeline manifest
+Safety:    Safe by default; push only when confirmed.
+Examples:
+  sf pipeline_full
+  sf pipeline_full --auto example.com
+
+💫 End of reference — forged knowledge.
+

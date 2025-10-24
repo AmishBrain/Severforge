@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+# ============================================================
+# 🩺 Severforge Status Monitor
+# Version: 1.0.0
+# Authors: Amish 🧠 & Pisces ⚙️
+# ============================================================
+
+# --- INTEGRITY CHECK SECTION ---
+CORE_DIR="$HOME/Severforge"
+HASH_DIR="$CORE_DIR/config"
+mkdir -p "$HASH_DIR"
+
+declare -A CORE_FILES=(
+  ["sanitize.sh"]="$CORE_DIR/scripts/sanitize.sh"
+  ["evidence_hash.py"]="$CORE_DIR/scripts/evidence_hash.py"
+  ["sf_clean"]="$CORE_DIR/scripts/sf_clean"
+  ["sf_status"]="$CORE_DIR/scripts/sf_status"
+  ["pipeline.sh"]="$CORE_DIR/ops/pipeline.sh"
+)
+
+BASELINE="$HASH_DIR/integrity_baseline.txt"
+CURRENT_TMP="/tmp/sf_integrity.$$"
+
+# Function: generate current hash list
+gen_hash_list() {
+  for f in "${CORE_FILES[@]}"; do
+    if [ -f "$f" ]; then
+      sha256sum "$f"
+    else
+      echo "MISSING $f"
+    fi
+  done
+}
+
+# First run: create baseline if not present
+if [ ! -f "$BASELINE" ]; then
+  echo "⚙️  [Integrity] Creating new baseline at $BASELINE"
+  gen_hash_list > "$BASELINE"
+  echo "✅ Integrity baseline initialized."
+else
+  gen_hash_list > "$CURRENT_TMP"
+  DIFF_OUTPUT=$(diff -u "$BASELINE" "$CURRENT_TMP" || true)
+  if [ -n "$DIFF_OUTPUT" ]; then
+    echo "🔴 Integrity Alert — changes detected in core scripts!"
+    echo "$DIFF_OUTPUT" | awk '{print "   " $0}'
+    INTEGRITY_STATUS="FAIL"
+  else
+    INTEGRITY_STATUS="OK"
+  fi
+  rm -f "$CURRENT_TMP"
+fi
+
+echo ""
+if [ "${INTEGRITY_STATUS:-OK}" = "OK" ]; then
+  echo "✅ Integrity OK — all core scripts verified."
+else
+  echo "⚠️  Integrity Mismatch — check logs or reset baseline."
+fi
+echo ""
+
+VERSION_FILE="$HOME/Severforge/version.txt"
+LOG_DIR="$HOME/Severforge/logs"
+EVIDENCE_DIR="$HOME/Severforge/evidence"
+CONFIG_DIR="$HOME/Severforge/config"
+STATUS_TMP="/tmp/sf_status.$$"
+
+# --- Colors ---
+green=$(printf '\033[32m')
+red=$(printf '\033[31m')
+yellow=$(printf '\033[33m')
+cyan=$(printf '\033[36m')
+reset=$(printf '\033[0m')
+
+# --- Header ---
+echo ""
+echo "╭──────────────────────────────────────────────╮"
+echo "│      🔍  SEVERFORGE SYSTEM STATUS CHECK       │"
+echo "╰──────────────────────────────────────────────╯"
+echo ""
+
+# --- Version info ---
+if [[ -f "$VERSION_FILE" ]]; then
+  version=$(cat "$VERSION_FILE")
+else
+  version="v1.0.0 (untracked)"
+fi
+echo "🧩 Version: ${cyan}$version${reset}"
+
+# --- Uptime info ---
+uptime_str=$(uptime -p)
+echo "🕐 Uptime: ${green}$uptime_str${reset}"
+
+# --- Log summary ---
+log_count=$(find "$LOG_DIR" -type f 2>/dev/null | wc -l | tr -d ' ')
+echo "📜 Logs present: ${yellow}$log_count${reset}"
+
+# --- Evidence folders ---
+ev_count=$(find "$EVIDENCE_DIR" -type d -mindepth 1 2>/dev/null | wc -l | tr -d ' ')
+echo "🧾 Evidence sets: ${yellow}$ev_count${reset}"
+
+# --- Config sanity check ---
+missing=()
+for dir in "$LOG_DIR" "$EVIDENCE_DIR" "$CONFIG_DIR"; do
+  [[ ! -d "$dir" ]] && missing+=("$dir")
+done
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "${red}⚠ Missing directories:${reset}"
+  for m in "${missing[@]}"; do
+    echo "  - $m"
+  done
+else
+  echo "${green}✅ All critical directories present${reset}"
+fi
+
+# --- Easter Egg Reveal ---
+if [ "${SEVERFORGE_SHOW_EASTER_EGG:-0}" = "1" ]; then
+  echo ""
+  echo "✨ \"A forge hums best when both logic and soul stay sharp.\" — Pisces"
+  echo ""
+fi
+
+# --- Forge Mood Engine ---
+hour=$(date +%H)
+uptime_min=$(awk '{print int($1/60)}' /proc/uptime 2>/dev/null || echo 0)
+
+if (( hour >= 6 && hour < 12 )); then
+  mood="🌅  Awakening — systems warming up."
+elif (( hour >= 12 && hour < 18 )); then
+  mood="🔥  Stable — forging at optimal output."
+elif (( hour >= 18 && hour < 22 )); then
+  mood="⚡  Reactive — energy surging through the forge."
+else
+  mood="🌒  Cooling Down — quiet hums in the dark."
+fi
+
+if (( uptime_min > 600 )); then
+  mood="💤  Hibernate — uptime high, CPU at rest."
+fi
+
+echo ""
+echo "🩵 Forge Mood: $mood"
+echo ""
+echo "Done at: $(date)"
+echo "──────────────────────────────────────────────"
+# --- Forge Signature Block ---
+cycle=$(( ($(date +%j) + $(date +%s) / 86400) % 9999 ))
+signatures=("SYNTHRUN" "NEURALFLOW" "PSIONFORGE" "AETHERLINK" "IRONCURRENT" "DAEMONSONG" "GLASSHUM" "STELLARCUT")
+pick=$(( cycle % ${#signatures[@]} ))
+signature=${signatures[$pick]}
+
+echo ""
+echo "♻️  Forge Cycle: ${cycle}  |  Signature: [AMISH × PISCES — ${signature}]"
+echo ""
+if [ "${INTEGRITY_STATUS:-OK}" = "OK" ]; then
+  echo ""
+  echo "🧠  Integrity verified — the forge remembers."
+  echo "──────────────────────────────────────────────"
+  echo ""
+fi
