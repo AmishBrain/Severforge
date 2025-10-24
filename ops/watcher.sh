@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+forge_react() {
+  # brief red→gold→reset glow when the forge reacts
+  for c in 196 202 208 214 220; do
+    echo -ne "\e[38;5;${c}m🔥 FORGE REACTING 🔥\e[0m\r"
+    sleep 0.07
+  done
+  echo -ne "\e[0m\r"   # reset color
+}
 # ────────────────────────────────────────────────
 # 🕵️‍♀️ Severforge Watcher
 # Watches evidence + logs and reports new events
@@ -28,18 +36,17 @@ forge_mood
 inotifywait -m -e create -e moved_to -e delete -e modify "$EVIDENCE_DIR" "$LOG_DIR" \
   --format '%T %w %e %f' --timefmt '%F %T' |
 while read -r date time dir event file; do
-    case "$event" in
-        *CREATE*|*MOVED_TO*)
-            echo "✨ [$date $time] New file detected: ${file}"
-            forge_react create
-            ;;
-        *DELETE*)
-            echo "💀 [$date $time] File deleted: ${file}"
-            forge_react delete
-            ;;
-        *MODIFY*)
-            echo "🔧 [$date $time] File updated: ${file}"
-            forge_react modify
-            ;;
-    esac
-done
+case "$event" in
+  *CREATE*|*MOVED_TO*)
+      echo "✨ [$date $time] New file detected: ${file}"
+      forge_react
+      ;;
+  *DELETE*)
+      echo "💀 [$date $time] File deleted: ${file}"
+      forge_react
+      ;;
+  *MODIFY*)
+      echo "🔧 [$date $time] File updated: ${file}"
+      forge_react
+      ;;
+esacdone

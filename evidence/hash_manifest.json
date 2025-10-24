@@ -1,0 +1,15 @@
+{
+  "generated_at": "2025-10-23T22:39:56.355533Z",
+  "user": "ubuntu",
+  "hostname": "BugArcade",
+  "root": "/home/ubuntu/Severforge/evidence",
+  "file_count": 1,
+  "git_commit": "51976c742c28a4cc2926f42e0295f59a4c5aa86a",
+  "files": [
+    {
+      "path": "test/file.txt",
+      "sha256": "38fafd3e278f12f356e0e0758cf36c65553744947fefbbcecc6f514d60627934",
+      "size": 16
+    }
+  ]
+}

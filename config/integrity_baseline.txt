@@ -1,0 +1,5 @@
+796badb0c2a91a9a8059d3717cc9c64f75f32bdc0b57ab5b0506fc66af51030d  /home/ubuntu/Severforge/scripts/sanitize.sh
+4a9fae2972faf6970fcdc4e596c72ab1e45af8f8bd255fbe0b3f937816315247  /home/ubuntu/Severforge/scripts/sf_status
+d966422a9348ef927d2776b8a5a8fb08584e40d83bbacc6d2e2d510ffd00ae4e  /home/ubuntu/Severforge/scripts/evidence_hash.py
+1cb6453c8e1af15c7f92532949fa5d5529534943d028fe97791240f0160687f4  /home/ubuntu/Severforge/scripts/sf_clean
+45d8ef196271acc69b770ba332a168b4ad7d074ed41ba3e5fd3f409954cfa740  /home/ubuntu/Severforge/ops/pipeline.sh

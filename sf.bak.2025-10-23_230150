@@ -13,11 +13,6 @@ case "$1" in
   init)     bash scripts/setup_env.sh ;;
   verbs)    bash scripts/sf_verbs.sh ;;
   recon)    shift; bash scripts/sf_recon.sh "$@" ;;
-  httpx)    shift; bash scripts/sf_httpx.sh "$@" ;;
-  nuclei)   shift; bash scripts/sf_nuclei.sh "$@" ;;
-  amass)    shift; bash scripts/sf_amass.sh "$@" ;;
-  pipeline)  shift; bash ops/pipeline.sh "$@" ;;
-  pipeline_full)   shift; bash scripts/sf_pipeline_full.sh "$@" ;;
   *)
     echo "🔧 Usage: sf {status|sanitize|hash|watch|push|init}"
     ;;
