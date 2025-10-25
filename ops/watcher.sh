@@ -27,6 +27,7 @@ echo "────────────────────────�
 (
   while true; do
     echo "💓  Forge pulse — steady.  ($(date +'%H:%M:%S'))"
+    bash "$HOME/Severforge/scripts/sf_sync.sh" >> "$HOME/Severforge/logs/heartbeat.log" 2>&1
     sleep 30
   done
 ) &

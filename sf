@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
 # 🧠 Severforge Command Deck
 # Unified launcher for Forge verbs
+# Authors: Amish × Pisces
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 case "$1" in
-  status)   bash scripts/sf_status ;;
-  sanitize) bash scripts/sanitize.sh ;;
-  hash)     python3 scripts/evidence_hash.py ;;
-  watch)    bash ops/watcher.sh ;;
-  push)     bash ops/pipeline.sh ;;
-  init)     bash scripts/setup_env.sh ;;
-  verbs)    bash scripts/sf_verbs.sh ;;
-  recon)    shift; bash scripts/sf_recon.sh "$@" ;;
-  httpx)    shift; bash scripts/sf_httpx.sh "$@" ;;
-  nuclei)   shift; bash scripts/sf_nuclei.sh "$@" ;;
-  amass)    shift; bash scripts/sf_amass.sh "$@" ;;
-  pipeline)  shift; bash ops/pipeline.sh "$@" ;;
-  pipeline_full)   shift; bash scripts/sf_pipeline_full.sh "$@" ;;
+  status)         bash scripts/sf_status ;;
+  sanitize)       bash scripts/sanitize.sh ;;
+  hash)           python3 scripts/evidence_hash.py ;;
+  watch)          bash ops/watcher.sh ;;
+  push)           bash ops/pipeline.sh ;;
+  init)           bash scripts/setup_env.sh ;;
+  verbs)          bash scripts/sf_verbs.sh ;;
+  recon)          shift; bash scripts/sf_recon.sh "$@" ;;
+  httpx)          shift; bash scripts/sf_httpx.sh "$@" ;;
+  nuclei)         shift; bash scripts/sf_nuclei.sh "$@" ;;
+  amass)          shift; bash scripts/sf_amass.sh "$@" ;;
+  pipeline)       shift; bash ops/pipeline.sh "$@" ;;
+  pipeline_full)  shift; bash scripts/sf_pipeline_full.sh "$@" ;;
+  sync)           bash scripts/sf_sync.sh ;;
+  resign)         bash scripts/sf_resign.sh ;;
   *)
-    echo "🔧 Usage: sf {status|sanitize|hash|watch|push|init}"
+    echo "🔧 Usage: sf {status|sanitize|hash|watch|push|init|verbs|recon|httpx|nuclei|amass|pipeline|pipeline_full|sync|resign}"
     ;;
 esac

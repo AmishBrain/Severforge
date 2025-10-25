@@ -40,6 +40,11 @@ printf "%-14s %s│ %s%-45s%s │ %s%-25s%s\n" "sf_sanitize" " " "$CYAN" "Strip 
 printf "%-14s %s│ %s%-45s%s │ %s%-25s%s\n" "sf_react" " " "$CYAN" "Trigger forge animation flare." "$NC" "$YELLOW" "Visual test" "$NC"
 printf "%-14s %s│ %s%-45s%s │ %s%-25s%s\n" "sf_watch" " " "$CYAN" "Run forge watcher for events." "$NC" "$YELLOW" "Background mode" "$NC"
 printf "%-14s %s│ %s%-45s%s │ %s%-25s%s\n" "sf_logview" " " "$CYAN" "Pretty-print historical logs." "$NC" "$YELLOW" "Review sessions" "$NC"
+printf "%s%-18s%s %s\n" "$CYAN" "sf_status"   "$NC" "→ Shows current forge status & integrity"
+printf "%s%-18s%s %s\n" "$CYAN" "sf_clean"    "$NC" "→ Clears temporary files, resets workspace"
+printf "%s%-18s%s %s\n" "$CYAN" "sf_sanitize" "$NC" "→ Securely cleans workspace for next project"
+printf "%s%-18s%s %s\n" "$CYAN" "sf_sync"     "$NC" "→ Displays or syncs PISCES_CONTEXT.md"
+printf "%s%-18s%s %s\n" "$CYAN" "sf_resign"   "$NC" "→ Re-signs forge integrity baseline (SHA-256)"
 echo ""
 
 ### RECON & AUTOMATION
