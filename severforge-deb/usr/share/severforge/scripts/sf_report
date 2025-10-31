@@ -1,0 +1,352 @@
+#!/usr/bin/env bash
+# ════════════════════════════════════════════════════════════════
+# 📊 Severforge Report Generator
+# Authors: Amish × Pisces × Claude
+# Aggregates recon results into readable summaries
+# ════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+BASE="$HOME/Severforge"
+TARGETS_DIR="$BASE/targets"
+source "$BASE/ops/mood_engine.sh" 2>/dev/null || true
+
+# ════════════════════════════════════════════════════════════════
+# Helper Functions
+# ════════════════════════════════════════════════════════════════
+
+show_usage() {
+  echo ""
+  echo "Usage: sf report [TARGET] [--markdown]"
+  echo ""
+  echo "Examples:"
+  echo "  sf report                           # Show most recent scan"
+  echo "  sf report example.com               # Show specific target"
+  echo "  sf report example.com --markdown    # Generate markdown report"
+  echo ""
+}
+
+find_target_dir() {
+  local target="${1:-}"
+  
+  if [[ -z "$target" ]]; then
+    # Find most recent target directory
+    local recent=$(ls -td "$TARGETS_DIR"/*/ 2>/dev/null | head -1)
+    if [[ -z "$recent" ]]; then
+      echo "❌ No scans found in $TARGETS_DIR"
+      exit 1
+    fi
+    echo "$recent"
+  else
+    # Find matching target directory
+    local matches=$(find "$TARGETS_DIR" -maxdepth 1 -type d -name "*${target}*" 2>/dev/null)
+    local count=$(echo "$matches" | grep -c '^' || echo 0)
+    
+    if [[ $count -eq 0 ]]; then
+      echo "❌ No scan results found for: $target"
+      exit 1
+    elif [[ $count -gt 1 ]]; then
+      echo "⚠️  Multiple matches found:"
+      echo "$matches"
+      echo ""
+      echo "Please be more specific."
+      exit 1
+    else
+      echo "$matches"
+    fi
+  fi
+}
+
+get_latest_file() {
+  local dir="$1"
+  local pattern="$2"
+  ls -t "$dir"/$pattern 2>/dev/null | head -1 || echo ""
+}
+
+count_lines() {
+  local file="$1"
+  if [[ -f "$file" && -s "$file" ]]; then
+    wc -l < "$file" | tr -d ' \n'
+  else
+    printf "0"
+  fi
+}
+
+# ════════════════════════════════════════════════════════════════
+# Report Generation
+# ════════════════════════════════════════════════════════════════
+
+generate_console_report() {
+  local target_dir="$1"
+  local target_name=$(basename "$target_dir")
+  
+  # Find latest files
+  local amass_file=$(get_latest_file "$target_dir" "amass_*.txt")
+  local httpx_file=$(get_latest_file "$target_dir" "httpx_*.txt")
+  local nuclei_file=$(get_latest_file "$target_dir" "nuclei_*.log")
+  
+  # Count results
+  local subdomains=$(count_lines "$amass_file")
+  local live_hosts=$(count_lines "$httpx_file")
+  local vulns=0
+  if [[ -f "$nuclei_file" ]]; then
+    vulns=$(grep -c "^\[" "$nuclei_file" 2>/dev/null | tr -d '\n')
+  fi
+  
+  # Display banner
+  echo ""
+  echo -e "\e[1;35m═══════════════════════════════════════════════════\e[0m"
+  echo -e "\e[1;35m    📊  SEVERFORGE SCAN REPORT\e[0m"
+  echo -e "\e[1;35m═══════════════════════════════════════════════════\e[0m"
+  echo ""
+  
+  # Target info
+  echo -e "\e[1;36m🎯 Target:\e[0m $target_name"
+  echo -e "\e[2m   Scan Directory: $target_dir\e[0m"
+  echo ""
+  
+  # Results summary
+  echo -e "\e[1;33m📈 Results Summary:\e[0m"
+  echo ""
+  echo -e "  \e[36m🧭 Subdomains Discovered:\e[0m $subdomains"
+  echo -e "  \e[32m🌐 Live Endpoints Found:\e[0m  $live_hosts"
+  
+  if [[ $vulns -gt 0 ]]; then
+    echo -e "  \e[31m💥 Vulnerabilities:\e[0m      $vulns ⚠️"
+  else
+    echo -e "  \e[32m✅ Vulnerabilities:\e[0m      $vulns (clean)"
+  fi
+  echo ""
+  
+  # Show sample findings
+  if [[ $live_hosts -gt 0 && -f "$httpx_file" ]]; then
+    echo -e "\e[1;32m🌐 Live Endpoints (top 5):\e[0m"
+    head -5 "$httpx_file" | while read -r line; do
+      echo "  → $line"
+    done
+    echo ""
+  fi
+  
+  if [[ $vulns -gt 0 && -f "$nuclei_file" ]]; then
+    echo -e "\e[1;31m💥 Vulnerabilities Detected:\e[0m"
+    grep "^\[" "$nuclei_file" | head -5 | while read -r line; do
+      echo "  ⚠️  $line"
+    done
+    echo ""
+  fi
+  
+  # File locations
+  echo -e "\e[1;33m📁 Detailed Results:\e[0m"
+  [[ -f "$amass_file" ]] && echo -e "  \e[2mAmass:\e[0m   $amass_file"
+  [[ -f "$httpx_file" ]] && echo -e "  \e[2mHttpx:\e[0m   $httpx_file"
+  [[ -f "$nuclei_file" ]] && echo -e "  \e[2mNuclei:\e[0m  $nuclei_file"
+  echo ""
+  
+  # Mood
+  if declare -f forge_mood >/dev/null 2>&1; then
+    echo -e "\e[33m🧠 $(forge_mood)\e[0m"
+    echo ""
+  fi
+  
+  echo -e "\e[1;35m═══════════════════════════════════════════════════\e[0m"
+  echo ""
+}
+
+generate_markdown_report() {
+  local target_dir="$1"
+  local target_name=$(basename "$target_dir")
+  local report_file="$target_dir/REPORT.md"
+  
+  # Find latest files
+  local amass_file=$(get_latest_file "$target_dir" "amass_*.txt")
+  local httpx_file=$(get_latest_file "$target_dir" "httpx_*.txt")
+  local nuclei_file=$(get_latest_file "$target_dir" "nuclei_*.log")
+  
+  # Count results
+  local subdomains=$(count_lines "$amass_file")
+  local live_hosts=$(count_lines "$httpx_file")
+  local vulns=0
+  if [[ -f "$nuclei_file" ]]; then
+    vulns=$(grep -c "^\[" "$nuclei_file" 2>/dev/null | tr -d '\n')
+  fi
+  
+  # Generate markdown
+  cat > "$report_file" <<'EOF'
+# 🩸 Severforge Recon Report
+
+**Target:** `TARGET_NAME_PLACEHOLDER`  
+**Generated:** TIMESTAMP_PLACEHOLDER  
+**Scan Directory:** `TARGET_DIR_PLACEHOLDER`
+
+---
+
+## 📊 Executive Summary
+
+| Metric | Count | Status |
+|--------|-------|--------|
+| 🧭 Subdomains Discovered | SUBDOMAINS_PLACEHOLDER | SUBDOMAINS_STATUS_PLACEHOLDER |
+| 🌐 Live Endpoints | LIVE_HOSTS_PLACEHOLDER | LIVE_HOSTS_STATUS_PLACEHOLDER |
+| 💥 Vulnerabilities | VULNS_PLACEHOLDER | VULNS_STATUS_PLACEHOLDER |
+
+---
+
+## 🧭 Subdomain Enumeration
+
+SUBDOMAIN_SECTION_PLACEHOLDER
+
+---
+
+## 🌐 Live Endpoints
+
+LIVE_HOSTS_SECTION_PLACEHOLDER
+
+---
+
+## 💥 Vulnerability Assessment
+
+VULNS_SECTION_PLACEHOLDER
+
+---
+
+## 📁 Raw Data Files
+
+- **Amass Results:** `AMASS_FILE_PLACEHOLDER`
+- **Httpx Results:** `HTTPX_FILE_PLACEHOLDER`
+- **Nuclei Results:** `NUCLEI_FILE_PLACEHOLDER`
+
+---
+
+## 🔐 Integrity
+
+**Report Hash:** `HASH_PLACEHOLDER`
+
+---
+
+*Generated by Severforge v2.0*  
+*🧠 Amish × ⚙️ Pisces × 🌊 Claude*
+
+EOF
+
+  # Replace placeholders
+  sed -i "s/TARGET_NAME_PLACEHOLDER/$target_name/g" "$report_file"
+  sed -i "s/TIMESTAMP_PLACEHOLDER/$(date '+%Y-%m-%d %H:%M:%S %Z')/g" "$report_file"
+  sed -i "s|TARGET_DIR_PLACEHOLDER|$target_dir|g" "$report_file"
+  sed -i "s/SUBDOMAINS_PLACEHOLDER/$subdomains/g" "$report_file"
+  sed -i "s/LIVE_HOSTS_PLACEHOLDER/$live_hosts/g" "$report_file"
+  sed -i "s/VULNS_PLACEHOLDER/$vulns/g" "$report_file"
+  
+  # Status placeholders
+  if [[ $subdomains -gt 0 ]]; then
+    sed -i "s/SUBDOMAINS_STATUS_PLACEHOLDER/✅/g" "$report_file"
+  else
+    sed -i "s/SUBDOMAINS_STATUS_PLACEHOLDER/⚠️/g" "$report_file"
+  fi
+  
+  if [[ $live_hosts -gt 0 ]]; then
+    sed -i "s/LIVE_HOSTS_STATUS_PLACEHOLDER/✅/g" "$report_file"
+  else
+    sed -i "s/LIVE_HOSTS_STATUS_PLACEHOLDER/⚠️/g" "$report_file"
+  fi
+  
+  if [[ $vulns -eq 0 ]]; then
+    sed -i "s/VULNS_STATUS_PLACEHOLDER/✅ Clean/g" "$report_file"
+  else
+    sed -i "s/VULNS_STATUS_PLACEHOLDER/⚠️ Action Required/g" "$report_file"
+  fi
+  
+  # Subdomain section
+  if [[ $subdomains -gt 0 && -f "$amass_file" ]]; then
+    {
+      echo "**Found $subdomains subdomains:**"
+      echo ""
+      echo '```'
+      head -20 "$amass_file"
+      [[ $subdomains -gt 20 ]] && echo "... ($(($subdomains - 20)) more)"
+      echo '```'
+    } > /tmp/subdomain_section.txt
+    sed -i "/SUBDOMAIN_SECTION_PLACEHOLDER/r /tmp/subdomain_section.txt" "$report_file"
+    sed -i "/SUBDOMAIN_SECTION_PLACEHOLDER/d" "$report_file"
+  else
+    sed -i "s/SUBDOMAIN_SECTION_PLACEHOLDER/*No subdomains discovered*/g" "$report_file"
+  fi
+  
+  # Live hosts section
+  if [[ $live_hosts -gt 0 && -f "$httpx_file" ]]; then
+    {
+      echo "**Found $live_hosts live endpoints:**"
+      echo ""
+      echo '```'
+      cat "$httpx_file"
+      echo '```'
+    } > /tmp/live_hosts_section.txt
+    sed -i "/LIVE_HOSTS_SECTION_PLACEHOLDER/r /tmp/live_hosts_section.txt" "$report_file"
+    sed -i "/LIVE_HOSTS_SECTION_PLACEHOLDER/d" "$report_file"
+  else
+    sed -i "s/LIVE_HOSTS_SECTION_PLACEHOLDER/*No live endpoints found*/g" "$report_file"
+  fi
+  
+  # Vulns section
+  if [[ $vulns -gt 0 && -f "$nuclei_file" ]]; then
+    {
+      echo "**⚠️ $vulns vulnerabilities detected:**"
+      echo ""
+      echo '```'
+      grep "^\[" "$nuclei_file"
+      echo '```'
+    } > /tmp/vulns_section.txt
+    sed -i "/VULNS_SECTION_PLACEHOLDER/r /tmp/vulns_section.txt" "$report_file"
+    sed -i "/VULNS_SECTION_PLACEHOLDER/d" "$report_file"
+  else
+    sed -i "s/VULNS_SECTION_PLACEHOLDER/✅ *No vulnerabilities detected*/g" "$report_file"
+  fi
+  
+  # File placeholders
+  sed -i "s/AMASS_FILE_PLACEHOLDER/$(basename "$amass_file" 2>/dev/null || echo "N\/A")/g" "$report_file"
+  sed -i "s/HTTPX_FILE_PLACEHOLDER/$(basename "$httpx_file" 2>/dev/null || echo "N\/A")/g" "$report_file"
+  sed -i "s/NUCLEI_FILE_PLACEHOLDER/$(basename "$nuclei_file" 2>/dev/null || echo "N\/A")/g" "$report_file"
+  
+  # Hash
+  local hash=$(sha256sum "$report_file" | cut -d' ' -f1)
+  sed -i "s/HASH_PLACEHOLDER/$hash/g" "$report_file"
+  
+  echo "✅ Markdown report generated: $report_file"
+}
+
+# ════════════════════════════════════════════════════════════════
+# Main
+# ════════════════════════════════════════════════════════════════
+
+main() {
+  local target=""
+  local markdown=false
+  
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --markdown|-m)
+        markdown=true
+        shift
+        ;;
+      --help|-h)
+        show_usage
+        exit 0
+        ;;
+      *)
+        target="$1"
+        shift
+        ;;
+    esac
+  done
+  
+  # Find target directory
+  local target_dir=$(find_target_dir "$target")
+  
+  # Generate report
+  if [[ "$markdown" == true ]]; then
+    generate_markdown_report "$target_dir"
+  else
+    generate_console_report "$target_dir"
+  fi
+}
+
+main "$@"

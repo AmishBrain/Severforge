@@ -1,0 +1,11 @@
+https://investors.latitudefinancial.com.au
+https://auth.latitudefinancial.com
+https://auth.*.latitudefinancial.com
+*.latitudefs.com
+https://*.my.latitudepay.com/
+https://*.sg.latitudepay.com/
+https://my.latitudepay.com
+https://sg.latitudepay.com
+https://t.latitudefinancial.com
+https://p.latitudefinancial.com
+Payment APIs (general)

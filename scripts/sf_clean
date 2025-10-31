@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# sf_clean - quick clean + manifest regen for Severforge
+# Usage:
+#   sf_clean               # operates on ~/Severforge/evidence/* (all subfolders)
+#   sf_clean /path/to/dir  # operate on a single evidence folder
+EVIDENCE_ROOT="${1:-$HOME/Severforge/evidence}"
+LOGDIR="$HOME/Severforge/logs"
+SCRIPT_DIR="$HOME/Severforge/scripts"
+EVIDENCE_HASH="$SCRIPT_DIR/evidence_hash.py"
+SANITIZE_SCRIPT="$SCRIPT_DIR/sanitize.sh"
+
+mkdir -p "$LOGDIR"
+
+TIMESTAMP=$(date +%F_%H-%M-%S)
+LOG="$LOGDIR/sf_clean_$TIMESTAMP.log"
+
+echo "🧹 [sf_clean] Starting Severforge quick-clean at $(date)" | tee -a "$LOG"
+echo " - evidence root: $EVIDENCE_ROOT" | tee -a "$LOG"
+
+# 1) Run general sanitize (non-destructive to scripts)
+if [ -x "$SANITIZE_SCRIPT" ]; then
+  echo "[-] Running sanitize.sh ..." | tee -a "$LOG"
+  bash "$SANITIZE_SCRIPT" 2>&1 | tee -a "$LOG"
+else
+  echo "[!] sanitize.sh not found or not executable; skipping." | tee -a "$LOG"
+fi
+
+# 2) Drop obvious temp files in evidence root itself (safe)
+if [ -d "$EVIDENCE_ROOT" ]; then
+  echo "[-] Removing tmp/bak/swp files under $EVIDENCE_ROOT ..." | tee -a "$LOG"
+  find "$EVIDENCE_ROOT" -type f \( -name '*.tmp' -o -name '*.bak' -o -name '*.swp' -o -name '*.part' \) -print -delete 2>&1 | tee -a "$LOG" || true
+else
+  echo "[!] Evidence root not found: $EVIDENCE_ROOT" | tee -a "$LOG"
+  exit 1
+fi
+
+# 3) Rebuild manifests for each evidence target folder (or for the single folder)
+if [ -x "$EVIDENCE_HASH" ]; then
+  # if EVIDENCE_ROOT points at a folder containing files (not subfolders), treat it directly
+  if [ -f "$EVIDENCE_ROOT" ]; then
+    echo "[-] Provided path is a file; use a folder" | tee -a "$LOG"
+    exit 1
+  fi
+
+  # choose targets: if $EVIDENCE_ROOT has subdirs, run for each; else run for the root itself
+  subdirs=()
+  while IFS= read -r -d $'\0' d; do subdirs+=("$d"); done < <(find "$EVIDENCE_ROOT" -mindepth 1 -maxdepth 1 -type d -print0)
+
+  if [ ${#subdirs[@]} -eq 0 ]; then
+    # no subdirs, run on root
+    echo "[-] No subfolders found; generating manifest for $EVIDENCE_ROOT" | tee -a "$LOG"
+    "$EVIDENCE_HASH" "$EVIDENCE_ROOT" --output "$EVIDENCE_ROOT" 2>&1 | tee -a "$LOG"
+    echo "[-] Verifying manifest ..." | tee -a "$LOG"
+    "$EVIDENCE_HASH" --verify "$EVIDENCE_ROOT/hash_manifest.json" "$EVIDENCE_ROOT" 2>&1 | tee -a "$LOG" || echo "[!] Verification failed for $EVIDENCE_ROOT" | tee -a "$LOG"
+  else
+    # iterate each target folder
+    for d in "${subdirs[@]}"; do
+      echo "[-] Generating manifest for: $d" | tee -a "$LOG"
+      "$EVIDENCE_HASH" "$d" --output "$d" 2>&1 | tee -a "$LOG"
+      echo "[-] Verifying: $d" | tee -a "$LOG"
+      if "$EVIDENCE_HASH" --verify "$d/hash_manifest.json" "$d" 2>&1 | tee -a "$LOG"; then
+        echo "[+] Verified: $d" | tee -a "$LOG"
+      else
+        echo "[!] Verification FAILED: $d" | tee -a "$LOG"
+      fi
+    done
+  fi
+else
+  echo "[!] evidence_hash.py not found or not executable at $EVIDENCE_HASH" | tee -a "$LOG"
+  exit 1
+fi
+
+echo "✅ [sf_clean] Completed at $(date). Log: $LOG" | tee -a "$LOG"
+
+# easter egg: reveal only if env var is set
+if [ "${SEVERFORGE_SHOW_EASTER_EGG:-0}" = "1" ]; then
+  echo "✨ easter-egg: Forged by Amish & Pisces — carry the light. ✨" | tee -a "$LOG"
+fi
+
+exit 0
