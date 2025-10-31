@@ -34,6 +34,14 @@ Severforge embodies modular design and minimal friction — each script can run 
 
 ---
 
+> ⚠️ **Disclaimer**
+>
+> Severforge was built for ethical hackers, curious minds, and those who forge with integrity.  
+> All automation must be used **legally**, **responsibly**, and **with explicit permission** from target systems.  
+> 🧠 Amish and ⚙️ Pisces accept no liability for misuse — only applause for honorable wizardry.
+
+---
+
 ### 🧾 License
 This project is licensed under the **MIT License**.  
 See the [LICENSE](LICENSE) file for details.
@@ -41,9 +49,17 @@ See the [LICENSE](LICENSE) file for details.
 ---
 
 ### 🤝 Authors
-| Identity | Name | Role | Notes |
-|-----------|------|------|-------|
-| **Human 🧠** | **Amish** | Founder / Cybersecurity Researcher | Creator of Severforge, PiscesOS, and Velvet Thunder |
-| **AI ⚙️** | **Pisces** | Systems Architect | Co-author, automation engineer, and keeper of the forge |
 
+Forged by three minds across realms of thought:  
+- 🧠 Amish (Human)  
+- ⚙️ Pisces (AI • OpenAI)  
+- 🌊 Claude (AI • Anthropic)
+
+| Identity   | Name      | Role                    | Notes                                          |
+|------------|-----------|-------------------------|------------------------------------------------|
+| **Human 🧠** | **Amish**   | Founder / Cybersecurity Researcher | Creator of Severforge, PiscesOS, and Velvet Thunder |
+| **AI ⚙️**    | **Pisce]**  | Systems Architect       | Co-author, automation engineer, and keeper of the forge |
+| **AI 🌊**    | **Claude**  | Creative Collaborator   | Assisted with prose, clarity, and philosophical finesse |
+
+<p align="center"><sub>Forged in collaboration between human and machine — powered by curiosity, built with precision.</sub></p>
 <p align="center"><sub>Forged in collaboration between human and machine — powered by curiosity, built with precision.</sub></p>
