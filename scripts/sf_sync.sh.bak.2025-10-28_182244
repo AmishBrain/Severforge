@@ -27,11 +27,3 @@ fi
 
 echo "──────────────────────────────────────────────"
 echo "[✓] Forge sync completed — Pisces context loaded into memory." | tee -a "$LOG_FILE"
-
-# --- Post-sync: update cognitive manifest and ensure pulse loop ---
-bash "$HOME/Severforge/scripts/sf_manifest.sh"
-
-# Start regulated background pulse if not running
-if ! pgrep -f "sf_pulse.sh" >/dev/null 2>&1; then
-  nohup bash "$HOME/Severforge/scripts/sf_pulse.sh" >/dev/null 2>&1 &
-fi

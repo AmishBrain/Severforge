@@ -17,17 +17,19 @@ echo "[*] Starting environment sweep at $(date)" | tee -a "$LOG_FILE"
 for dir in "${TARGET_DIRS[@]}"; do
   if [ -d "$dir" ]; then
     echo "[-] Cleaning $dir..." | tee -a "$LOG_FILE"
-    rm -rf "$dir"/*
+    rm -rf "${dir:?}/"* 2>>"$LOG_FILE" || true
   fi
 done
 
 # Securely shred temp or cache files if any
-find $HOME -type f \( -name "*.tmp" -o -name "*.bak" -o -name "*.swp" \) -print -delete >> "$LOG_FILE" 2>&1
+echo "[*] Shredding temp/cache files..." | tee -a "$LOG_FILE"
+find "$HOME" -type f \( -name "*.tmp" -o -name "*.bak" -o -name "*.swp" \) -print -delete 2>>"$LOG_FILE" || true
 
 # Remove shell history (optional safety)
+echo "[*] Clearing shell history..." | tee -a "$LOG_FILE"
 history -c || true
-cat /dev/null > ~/.bash_history 2>/dev/null || true
-cat /dev/null > ~/.zsh_history 2>/dev/null || true
+: > ~/.bash_history 2>/dev/null || true
+: > ~/.zsh_history 2>/dev/null || true
 
 echo "[+] Environment sanitized successfully at $(date)" | tee -a "$LOG_FILE"
 echo "[+] Log saved to: $LOG_FILE"
