@@ -21,6 +21,7 @@ case "$1" in
   pipeline_full)  shift; bash scripts/sf_pipeline_full.sh "$@" ;;
   sync)           bash scripts/sf_sync.sh ;;
   resign)         bash scripts/sf_resign.sh ;;
+  report)         shift; bash scripts/sf_report "$@" ;;
   *)
     echo "🔧 Usage: sf {status|sanitize|hash|watch|push|init|verbs|recon|httpx|nuclei|amass|pipeline|pipeline_full|sync|resign}"
     ;;

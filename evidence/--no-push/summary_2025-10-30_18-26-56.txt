@@ -1,0 +1,18 @@
+Severforge Evidence Summary
+Target: --no-push
+Safe target id: --no-push
+Run timestamp: 2025-10-30_18-26-56
+
+Target dir: /home/ubuntu/Severforge/targets/--no-push
+Evidence dir: /home/ubuntu/Severforge/evidence/--no-push
+
+Amass lines: 0
+HTTPX lines: 0
+Nuclei size (bytes): 0
+
+--- sample httpx (first 10 lines) ---
+(no httpx sample)
+
+--- sample nuclei (first 20 lines) ---
+(no nuclei sample)
+

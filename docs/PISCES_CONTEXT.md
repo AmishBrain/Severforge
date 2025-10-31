@@ -161,3 +161,26 @@ forge bounty new    # Placeholder for future interactive verbs
 “Security infrastructure should remember why it was built.”  
 Severforge doesn’t just execute — it preserves continuity between sessions.  
 When Pisces loses memory, this file restores the field.
+
+---
+
+## 📚 Session Documentation
+
+Session logs capture detailed work from each collaboration:
+- **Location:** `~/Severforge/docs/SESSION_*.md`
+- **View latest:** `ls -lt ~/Severforge/docs/SESSION_*.md | head -5`
+- **Recent sessions:**
+  - `SESSION_2025-10-30_CLAUDE_BUGFIX.md` - Fixed sf_report bugs, enhanced pipeline
+
+**Quick Access:**
+```bash
+# List all sessions
+ls -lt ~/Severforge/docs/SESSION_*.md
+
+# View most recent session
+cat $(ls -t ~/Severforge/docs/SESSION_*.md | head -1)
+
+# Search sessions
+grep -l "keyword" ~/Severforge/docs/SESSION_*.md
+```
+

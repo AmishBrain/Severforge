@@ -40,7 +40,7 @@ def get_git_commit(root):
 def make_manifest(root_path, output_dir=None):
     root, files = gather_files(root_path)
     manifest = {
-        "generated_at": datetime.datetime.utcnow().isoformat() + "Z",
+       "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
         "user": getpass.getuser(),
         "hostname": socket.gethostname(),
         "root": str(root),

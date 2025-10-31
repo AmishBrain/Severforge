@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# launcher for banner
+bash "$HOME/Severforge/scripts/banner.sh"
