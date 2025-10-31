@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# ============================================================
+# 🩺 Severforge Status Monitor (Auto-Healing Edition)
+# Version: 2.0.0
+# Authors: Amish 🧠 & Pisces ⚙️
+# ============================================================
+
+CORE_DIR="$HOME/Severforge"
+HASH_DIR="$CORE_DIR/config"
+mkdir -p "$HASH_DIR"
+
+BASELINE="$HASH_DIR/integrity_baseline.txt"
+CURRENT_TMP="/tmp/sf_integrity.$$"
+
+# --- COLORS ---
+green=$(printf '\033[32m'); red=$(printf '\033[31m')
+yellow=$(printf '\033[33m'); cyan=$(printf '\033[36m'); reset=$(printf '\033[0m')
+
+# ============================================================
+# 1️⃣  INTEGRITY CHECK (SMART, ORDER-INDEPENDENT)
+# ============================================================
+
+echo "🔧 Rebuilding integrity baseline snapshot..."
+find "$CORE_DIR/scripts" -type f -exec sha256sum {} \; | sort > "$CURRENT_TMP"
+
+if [ ! -f "$BASELINE" ]; then
+  echo "🆕 No baseline found — creating fresh one."
+  cp "$CURRENT_TMP" "$BASELINE"
+  INTEGRITY_STATUS="OK"
+else
+  sort "$BASELINE" > /tmp/sf_base_sorted.$$
+  sort "$CURRENT_TMP" > /tmp/sf_cur_sorted.$$
+  DIFF_OUTPUT=$(diff -u --suppress-common-lines /tmp/sf_base_sorted.$$ /tmp/sf_cur_sorted.$$)
+  rm -f /tmp/sf_base_sorted.$$ /tmp/sf_cur_sorted.$$
+
+  if [ -n "$DIFF_OUTPUT" ]; then
+    echo "🔴 Integrity Alert — script modifications detected!"
+    echo "$DIFF_OUTPUT" | sed 's/^/   /'
+    INTEGRITY_STATUS="FAIL"
+    echo ""
+    read -rp $'⚠️  Re-sign baseline automatically? (y/N): ' resp
+    if [[ "$resp" =~ ^[Yy]$ ]]; then
+      cp "$CURRENT_TMP" "$BASELINE"
+      INTEGRITY_STATUS="OK"
+      echo "✅ Baseline re-signed successfully."
+    fi
+  else
+    INTEGRITY_STATUS="OK"
+  fi
+fi
+
+rm -f "$CURRENT_TMP"
+echo ""
+
+# ============================================================
+# 2️⃣  SYSTEM STATUS OVERVIEW
+# ============================================================
+echo "╭──────────────────────────────────────────────╮"
+echo "│      🔍  SEVERFORGE SYSTEM STATUS CHECK       │"
+echo "╰──────────────────────────────────────────────╯"
+echo ""
+
+version_file="$CORE_DIR/version.txt"
+version=$(cat "$version_file" 2>/dev/null || echo "v2.0.0 (untracked)")
+echo "🧩 Version: ${cyan}$version${reset}"
+echo "🕐 Uptime: ${green}$(uptime -p)${reset}"
+
+log_count=$(find "$CORE_DIR/logs" -type f 2>/dev/null | wc -l)
+ev_count=$(find "$CORE_DIR/evidence" -mindepth 1 -type d 2>/dev/null | wc -l)
+
+echo "📜 Logs present: ${yellow}$log_count${reset}"
+echo "🧾 Evidence sets: ${yellow}$ev_count${reset}"
+
+missing=()
+for dir in "$CORE_DIR/logs" "$CORE_DIR/evidence" "$CORE_DIR/config"; do
+  [[ ! -d "$dir" ]] && missing+=("$dir")
+done
+
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "${red}⚠ Missing directories:${reset}"
+  for m in "${missing[@]}"; do echo "  - $m"; done
+else
+  echo "${green}✅ All critical directories present${reset}"
+fi
+
+# ============================================================
+# 3️⃣  MOOD ENGINE
+# ============================================================
+hour=$((10#$(date +%H)))  # Fix for octal error
+if (( hour < 12 )); then
+  mood="🌅  Awakening — systems warming up."
+elif (( hour < 18 )); then
+  mood="🔥  Stable — forging at optimal heat."
+elif (( hour < 22 )); then
+  mood="⚡  Reactive — energy surging through circuits."
+else
+  mood="🌒  Cooling Down — quiet hums in the dark."
+fi
+
+echo ""
+echo "🩵 Forge Mood: $mood"
+echo ""
+echo "Done at: $(date)"
+echo "──────────────────────────────────────────────"
+
+cycle=$(( (10#$(date +%j) + 10#$(date +%s) / 86400) % 9999 ))
+signature_pool=("DAEMONSONG" "IRONCURRENT" "NEURALFLOW" "AETHERFLUX" "CHROMAFIELD")
+signature=${signature_pool[$((cycle % ${#signature_pool[@]}))]}
+
+echo ""
+echo "♻️  Forge Cycle: ${cycle}  |  Signature: [AMISH × PISCES — ${signature}]"
+echo ""
+
+if [ "$INTEGRITY_STATUS" = "OK" ]; then
+  echo "🧠  Integrity verified — the forge remembers."
+else
+  echo "💔  Integrity uncertain — forge requires calibration."
+fi
+echo ""
