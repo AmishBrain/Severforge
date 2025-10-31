@@ -39,7 +39,9 @@ Severforge embodies modular design and minimal friction — each script can run 
 > Severforge was built for ethical hackers, curious minds, and those who forge with integrity.  
 > All automation must be used **legally**, **responsibly**, and **with explicit permission** from target systems.  
 > 🧠 Amish and ⚙️ Pisces accept no liability for misuse — only applause for honorable wizardry.
-
+> ⚠️ Use at your own risk. This project was built for personal research and bug bounty automation.  
+> Results may vary depending on environment or configuration.  
+> Issues will be addressed as time permits — contributions welcome!
 ---
 
 ### 🧾 License
