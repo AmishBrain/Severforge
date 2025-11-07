@@ -1,2 +1,7 @@
 .venv/
 logs/
+# 🧹 Auto-added by sf_sanitize (sensitive paths)
+targets/*.latitudefinancial.com/
+targets/https/
+UA_underarmour_evidence_20251012/
+docs/SESSION_2025-10-30_CLAUDE_BUGFIX.md
